@@ -1,7 +1,5 @@
-import asyncio
 from os import environ
 
-from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
@@ -44,14 +42,3 @@ class TrxRequestsDB:
             )
             await session.execute(q)
             await session.commit()
-
-
-if __name__ == '__main__':
-    async def main():
-        load_dotenv()
-
-        trx_db = TrxRequestsDB()
-        await trx_db.add_request("sdfsfs", 600, 0, 20000)
-
-
-    asyncio.run(main())
