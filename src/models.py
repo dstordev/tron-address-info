@@ -6,6 +6,8 @@ class TrxAddressInfo(BaseModel):
     energy: int
     balance: float
 
+class Error(BaseModel):
+    error: str
 
 class DatabaseRecord(BaseModel):
     id: int
