@@ -1,0 +1,12 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+
+  db:
+    image: postgres:17.4
+    restart: always
+    # set shared memory limit when using docker-compose
+    shm_size: 128mb
+    env_file: .env
