@@ -1,7 +1,7 @@
 from os import environ
 from typing import List
 
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, select, delete
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
@@ -33,16 +33,26 @@ class TrxRequestsDB:
         engine = create_engine(self._engine.url)
         Base.metadata.create_all(engine)
 
-    async def add_request(self, trx_address: str, bandwidth: int, energy: int, balance: float):
+    async def add_request(self, trx_address: str, bandwidth: int, energy: int, balance: float) -> int:
         async with self._async_session() as session:
+            session: AsyncSession = session
             q = insert(TrxRequestsTable).values(
                 trx_address=trx_address,
                 bandwidth=bandwidth,
                 energy=energy,
                 balance=balance
-            )
-            await session.execute(q)
+            ).returning(TrxRequestsTable._id)
+            result = await session.execute(q)
             await session.commit()
+            return int(result.first()[0])
+
+    async def delete_request(self, _id: int) -> int:
+        async with self._async_session() as session:
+            session: AsyncSession = session
+            q = delete(TrxRequestsTable).where(TrxRequestsTable._id == _id).returning(TrxRequestsTable._id)
+            result = await session.execute(q)
+            await session.commit()
+            return int(result.first()[0])
 
     async def get_requests(self, limit: int = 10, page_index: int = 0) -> List[TrxRequestsTable]:
         async with self._async_session() as session:
