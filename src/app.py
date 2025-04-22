@@ -1,12 +1,13 @@
 from os import environ
-from typing import List
+from typing import List, Union
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from pydantic import BaseModel
+from tronpy.exceptions import BadAddress
 
 from database import TrxRequestsDB
-from models import TrxAddressInfo, DatabaseRecord
+from models import TrxAddressInfo, DatabaseRecord, Error
 from trx import TrxAddress
 
 load_dotenv()
@@ -21,13 +22,21 @@ class AddressInfoRequestData(BaseModel):
 
 
 @app.post("/address/info")
-async def address_info(address_info_request: AddressInfoRequestData) -> TrxAddressInfo:
+async def address_info(address_info_request: AddressInfoRequestData, response: Response) -> Union[
+    TrxAddressInfo | Error]:
     trx_address = TrxAddress(address_info_request.address, environ.get("trongrid_api_key"))
-    trx_address_info = TrxAddressInfo(
-        bandwidth=await trx_address.get_bandwidth(),
-        energy=await trx_address.get_energy(),
-        balance=await trx_address.get_balance()
-    )
+    try:
+        trx_address_info = TrxAddressInfo(
+            bandwidth=await trx_address.get_bandwidth(),
+            energy=await trx_address.get_energy(),
+            balance=await trx_address.get_balance()
+        )
+    except BadAddress:
+        response.status_code = 400
+        return Error(
+            error="BadAddress TRX"
+        )
+
     await trx_requests_db.add_request(
         trx_address=address_info_request.address,
         bandwidth=trx_address_info.bandwidth,
