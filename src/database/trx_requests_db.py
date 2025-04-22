@@ -1,6 +1,7 @@
 from os import environ
+from typing import List
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
@@ -42,3 +43,9 @@ class TrxRequestsDB:
             )
             await session.execute(q)
             await session.commit()
+
+    async def get_requests(self, limit: int = 10, page_index: int = 0) -> List[TrxRequestsTable]:
+        async with self._async_session() as session:
+            q = select(TrxRequestsTable).limit(limit).offset(page_index * limit)
+            result = await session.execute(q)
+            return [result[0] for result in result.all()]

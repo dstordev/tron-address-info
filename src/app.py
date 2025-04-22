@@ -1,11 +1,12 @@
 from os import environ
+from typing import List
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from models import TrxAddressInfo, DatabaseRecord
 from database import TrxRequestsDB
+from models import TrxAddressInfo, DatabaseRecord
 from trx import TrxAddress
 
 load_dotenv()
@@ -37,5 +38,12 @@ async def address_info(address_info_request: AddressInfoRequestData) -> TrxAddre
 
 
 @app.get("/records/recent")
-async def records_recent(limit: int = 10, page_index: int = 0) -> DatabaseRecord:
-    pass
+async def records_recent(limit: int = 10, page_index: int = 0) -> List[DatabaseRecord]:
+    results = await trx_requests_db.get_requests(limit, page_index)
+    return [DatabaseRecord(
+        id=result._id,
+        trx_address=result.trx_address,
+        bandwidth=result.bandwidth,
+        energy=result.energy,
+        balance=result.balance
+    ) for result in results]
