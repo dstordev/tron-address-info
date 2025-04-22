@@ -10,6 +10,6 @@ class TrxAddressInfo(BaseModel):
 class DatabaseRecord(BaseModel):
     id: int
     trx_address: str
-    bandwidth: str
-    energy: str
-    balance: int
+    bandwidth: int
+    energy: int
+    balance: float
