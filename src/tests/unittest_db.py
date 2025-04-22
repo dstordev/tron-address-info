@@ -6,7 +6,7 @@ from src.database import TrxRequestsDB
 load_dotenv()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="function")
 async def test_write():
     trx_requests_db = TrxRequestsDB()
     # write
